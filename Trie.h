@@ -62,14 +62,17 @@ public:
 	void Add(const char *key, const T& val) {
 		size_t lenKey = strlen(key);
 
+		char *keyCopy = new char[lenKey+1];
+		memcpy(keyCopy, key, lenKey+1);
+
 		if (root == nullptr) {
 			root = new Node<T>;
 			root->path = new char[lenKey + 1];
 			strcpy(root->path, key);
-			root->value = val;
+			//root->value = val;
 			return;
 		}
-		Node<T> *currnode = root;
+		register Node<T> *currnode = root;
 		register char dif;
 
 		size_t lenPath = strlen(currnode->path);
@@ -79,9 +82,11 @@ public:
 				if ((Leftmost(dif) & key[i])) {
 					if (currnode->Right == nullptr) {
 						currnode->Right = new Node<T>;
-						currnode->Right->path = new char[lenKey - i + 1];
-						strcpy(currnode->Right->path, (key + i));
-						currnode->Right->value = val;
+						//currnode->Right->path = new char[lenKey - i + 1];
+						//strcpy(currnode->Right->path, (key + i));
+						//memcpy(currnode->Right->path, (key + i), lenKey - i + 1);
+						currnode->Right->path = (keyCopy + i);
+						//currnode->Right->value = val;
 						return;
 					}
 					else {
@@ -94,9 +99,11 @@ public:
 				else {
 					if (currnode->Left == nullptr) {
 						currnode->Left = new Node<T>;
-						currnode->Left->path = new char[lenKey - i + 1];
-						strcpy(currnode->Left->path, (key + i));
-						currnode->Left->value = val;
+						//currnode->Left->path = new char[lenKey - i + 1];
+						//strcpy(currnode->Left->path, (key + i));
+						//memcpy(currnode->Left->path, (key + i), lenKey - i + 1);
+						currnode->Left->path = (keyCopy + i);
+						//currnode->Left->value = val;
 						return;
 					}
 					else {
@@ -113,7 +120,7 @@ public:
 		}
 		currnode->Left = new Node<T>;
 		currnode->Left->path = new char[1];
-		currnode->Left->value = val;
+		//currnode->Left->value = val;
 	}
 
 	~Trie() {
@@ -125,9 +132,11 @@ private:
 	
 private:
 	static char Leftmost(char c) {
+		
 		c |= (c >> 1);
 		c |= (c >> 2);
 		c |= (c >> 4);
+
 		return (((unsigned char)c + 1) >> 1);
 	}
 	
@@ -137,7 +146,7 @@ private:
 		DeleteNode(node->Left);
 		DeleteNode(node->Right);
 
-		if (node->path != nullptr)delete node->path;
+		if (node->path != nullptr)delete[] node->path;
 
 		delete node;
 
