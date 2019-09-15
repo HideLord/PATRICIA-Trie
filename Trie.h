@@ -1,17 +1,11 @@
 #pragma once
-#include<iostream>
-#include<algorithm>
-#include<vector>
-#include<unordered_map>
-
-using namespace std;
 
 template<typename T>
 struct Node {
 	char *path = nullptr;
 	T value;
-	Node *Left = nullptr;
-	Node *Right = nullptr;
+	Node<T> *Left = nullptr;
+	Node<T> *Right = nullptr;
 };
 
 template <typename T>
@@ -21,15 +15,111 @@ public:
 		root = nullptr;
 	}
 
-	void Add(char *key, const T& val) {
+	T Get(const char *key) {
+		size_t lenKey = strlen(key);
+
+		if (root == nullptr) {
+			return T();
+		}
+		Node<T> *currnode = root;
+		register char dif;
+
+		size_t lenPath = strlen(currnode->path);
+		size_t j = 0;
+		for (size_t i = 0; i < lenKey; ++i) {
+			dif = (key[i] ^ currnode->path[j++]);
+			if (dif) {
+				if ((Leftmost(dif) & key[i])) {
+					if (currnode->Right == nullptr) {
+						return T();
+					}
+					else {
+						currnode = currnode->Right;
+						j = 0;
+						i--;
+						lenPath = strlen(currnode->path);
+					}
+				}
+				else {
+					if (currnode->Left == nullptr) {
+						return T();
+					}
+					else {
+						currnode = currnode->Left;
+						j = 0;
+						i--;
+						lenPath = strlen(currnode->path);
+					}
+				}
+			}
+		}
+		if (j == lenPath) {
+			return currnode->value;
+		}
+		return T();
+	}
+
+	void Add(const char *key, const T& val) {
+		size_t lenKey = strlen(key);
+
 		if (root == nullptr) {
 			root = new Node<T>;
-			memcpy(root->path, key, sizeof key);
+			root->path = new char[lenKey + 1];
+			strcpy(root->path, key);
 			root->value = val;
 			return;
 		}
+		Node<T> *currnode = root;
+		register char dif;
 
+		size_t lenPath = strlen(currnode->path);
+		size_t j = 0;
+		for (size_t i = 0; i < lenKey; ++i) {
+			if (dif = (key[i] ^ currnode->path[j++])) {
+				if ((Leftmost(dif) & key[i])) {
+					if (currnode->Right == nullptr) {
+						currnode->Right = new Node<T>;
+						currnode->Right->path = new char[lenKey - i + 1];
+						strcpy(currnode->Right->path, (key + i));
+						currnode->Right->value = val;
+						return;
+					}
+					else {
+						currnode = currnode->Right;
+						j = 0;
+						--i;
+						lenPath = strlen(currnode->path);
+					}
+				}
+				else {
+					if (currnode->Left == nullptr) {
+						currnode->Left = new Node<T>;
+						currnode->Left->path = new char[lenKey - i + 1];
+						strcpy(currnode->Left->path, (key + i));
+						currnode->Left->value = val;
+						return;
+					}
+					else {
+						currnode = currnode->Left;
+						j = 0;
+						--i;
+						lenPath = strlen(currnode->path);
+					}
+				}
+			}
+		}
+		while (currnode->Left != nullptr) {
+			currnode = currnode->Left;
+		}
+		currnode->Left = new Node<T>;
+		currnode->Left->path = new char[1];
+		currnode->Left->value = val;
 	}
+
+	~Trie() {
+		DeleteNode(root);
+	}
+	
 private:
 	Node<T> *root;
 	
@@ -38,7 +128,7 @@ private:
 		c |= (c >> 1);
 		c |= (c >> 2);
 		c |= (c >> 4);
-		return ((c + 1) >> 1);
+		return (((unsigned char)c + 1) >> 1);
 	}
 	
 	void DeleteNode(Node<T>* node){
@@ -52,8 +142,5 @@ private:
 		delete node;
 
 		return;
-	}
-	~Trie() {
-		DeleteNode(root);
 	}
 };
